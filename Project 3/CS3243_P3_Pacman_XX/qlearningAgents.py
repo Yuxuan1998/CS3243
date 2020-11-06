@@ -90,11 +90,11 @@ class QLearningAgent(ReinforcementAgent):
         #util.raiseNotDefined()
         legalActions = self.getLegalActions(state)
 
-        if len(legalActions)==0:
+        if len(legalActions) == 0:
           return None
 
-        if self.seen.get(state) is None:
-          return random.choice(legalActions)
+#        if self.seen.get(state) is None:
+#          return random.choice(legalActions)
 
         maxA = []
         maxQ = float('-inf')
