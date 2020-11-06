@@ -149,7 +149,7 @@ class NewExtractor(FeatureExtractor):
 
         features = util.Counter()
 
-        features["bias"] = 1.0
+#        features["bias"] = 1.0
 
         # compute the location of pacman after he takes the action
         x, y = state.getPacmanPosition()
@@ -175,6 +175,8 @@ class NewExtractor(FeatureExtractor):
             capsuleGrid[int(capsules[i][0])][int(capsules[i][1])] = True
             capsulePosList.append(capsules[i])
 
+        if not_scared_ghostsGrid[next_x][next_y]:
+            features["gets_eaten"] = 1.0
         features["#-of-not-scared-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in not_scared_ghostsPosList)
         features["#-of-scared-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in scared_ghostsPosList)
 
@@ -247,82 +249,3 @@ class NewExtractor(FeatureExtractor):
             features["closest-food"] = float(dist) / (walls.width * walls.height)
         features.divideAll(10.0)
         return features
-        
-
-class temp(FeatureExtractor):
-    """
-    Design you own feature extractor here. You may define other helper functions you find necessary.
-    """
-    
-    def getFeatures(self, state, action):
-        "*** YOUR CODE HERE ***"
-        food = state.getFood()
-        walls = state.getWalls()
-        ghosts = state.getGhostPositions()
-        capsules = state.getCapsules()
-        features = util.Counter()
-
-        # compute the location of pacman after he takes the action
-        x, y = state.getPacmanPosition()
-        dx, dy = Actions.directionToVector(action)
-        next_x, next_y = int(x + dx), int(y + dy)
-
-        not_scared_ghostsPosList = []
-        not_scared_ghostsGrid = Grid(food.width, food.height)
-        scared_ghostsPosList = []
-        scared_ghostsGrid = Grid(food.width, food.height)
-        for i in range(len(ghosts)):
-            if state.getGhostStates()[i].scaredTimer > 0:
-                scared_ghostsPosList.append(ghosts[i])
-                scared_ghostsGrid[int(ghosts[i][0])][int(ghosts[i][1])] = True
-            else:
-                not_scared_ghostsPosList.append(ghosts[i])
-                not_scared_ghostsGrid[int(ghosts[i][0])][int(ghosts[i][1])] = True
-        
-        capsuleGrid = Grid(food.width, food.height)
-        capsulePosList = []
-        for i in range(len(capsules)):
-            capsuleGrid[int(capsules[i][0])][int(capsules[i][1])] = True
-            capsulePosList.append(capsules[i])
-        
-        if len(scared_ghostsPosList) > 0: # if ghosts are scared
-            if scared_ghostsGrid[next_x][next_y]:
-                features["eats-ghost"] = 1.0
-
-            dist_scared_ghost = closestItem((next_x, next_y), scared_ghostsGrid, walls)
-            if dist_scared_ghost is not None:
-                features["closest-scared-ghost"] = float(dist_scared_ghost) / (walls.width * walls.height)
-        else: # if ghosts are not scared       
-            dist_not_scared_ghost = closestItem((next_x, next_y), not_scared_ghostsGrid, walls)
-            if dist_not_scared_ghost is not None:
-                features["closest-not-scared-ghost"] = float(dist_not_scared_ghost) / (walls.width * walls.height)
-
-#        if not_scared_ghostsGrid[next_x][next_y]:
-#            features["gets_eaten"] = 1.0
-
-        features["#-of-not-scared-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in not_scared_ghostsPosList)
-        features["#-of-scared-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in scared_ghostsPosList)
-
-        dist_capsule = closestItem((next_x, next_y), capsuleGrid, walls)
-        if dist_capsule is not None:
-            features["closest-capsule"] = (float(dist_capsule) / (walls.width * walls.height))
-
-        # if there is no danger of ghosts then add the food feature
-        if not features["#-of-not-scared-ghosts-1-step-away"] and food[next_x][next_y]:
-            features["eats-food"] = 1.0
-        if not features["#-of-not-scared-ghosts-1-step-away"] and capsuleGrid[next_x][next_y]:
-            features["eats-capsule"] = 1.0
-
-        dist_food = closestFood((next_x, next_y), food, walls)
-#        if dist_food is not None:
-#            # make the distance a number less than one otherwise the update
-#            # will diverge wildly
-#            features["closest-food"] = float(dist_food) / (walls.width * walls.height)
-
-        features.divideAll(10.0)
-        return features
-
-
-
-
-        
